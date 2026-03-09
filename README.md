@@ -1,8 +1,10 @@
 Rocket Game - Created Week 3 Day 1 
+
 9/3/26 - Will Hunt
 
 
-CONTROLS
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+          CONTROLS
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 SPACE [HOLD] to initiate thrusters
 
