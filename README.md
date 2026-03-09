@@ -6,6 +6,7 @@ Rocket Game - Created Week 3 Day 1
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
           CONTROLS
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 SPACE [HOLD] to initiate thrusters
 
 W/S to use PITCH
