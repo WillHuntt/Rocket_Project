@@ -5,7 +5,7 @@ public class RocketController : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] float thrustForce = 1200f;
-    [SerializeField] float rotationSpeed = 120f;
+    [SerializeField] float rotationSpeed = 150f;
 
     [Header("Descent Settings")]
     [Tooltip("How strongly the rocket counteracts gravity when landing")]
@@ -20,15 +20,18 @@ public class RocketController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // Settings these via code ensures a consistent "heavy but smooth" feel
+        // Fix for CS1061: Using 'drag' and 'angularDrag' for compatibility
         rb.linearDamping = 1.5f;
         rb.angularDamping = 2.0f;
+
+        // Ensure the rocket starts on the 2D gameplay plane (Z = 0)
+        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
     }
 
     void FixedUpdate()
     {
         HandleThrust();
-        HandleRotation();
+        Handle2DRotation();
     }
 
     void HandleThrust()
@@ -38,50 +41,39 @@ public class RocketController : MonoBehaviour
         {
             rb.AddRelativeForce(Vector3.up * thrustForce * Time.fixedDeltaTime);
 
+            // Instant Particle Trigger
             if (thrustParticles != null && !thrustParticles.isPlaying)
+            {
+                thrustParticles.Clear(); // Removes old particles to prevent restart delay
                 thrustParticles.Play();
+            }
         }
         else
         {
+            // Stop flames when Space is released
             if (thrustParticles != null && thrustParticles.isPlaying)
+            {
                 thrustParticles.Stop();
+            }
         }
 
         // CONTROLLED DESCENT: Shift to land smoothly
-        if (Keyboard.current.leftShiftKey.isPressed)
+        // Checks if falling (negative velocity) to apply the cushion
+        if (Keyboard.current.leftShiftKey.isPressed && rb.linearVelocity.y < -0.1f)
         {
-            if (rb.linearVelocity.y < -0.1f)
-            {
-                rb.AddForce(Vector3.up * landingCushionForce * Time.fixedDeltaTime);
-            }
-            else
-            {
-                rb.AddRelativeForce(Vector3.down * (thrustForce * 0.2f) * Time.fixedDeltaTime);
-            }
+            rb.AddForce(Vector3.up * landingCushionForce * Time.fixedDeltaTime);
         }
     }
 
-    void HandleRotation()
+    void Handle2DRotation()
     {
-        float pitch = 0f; // Tilt forward/back (X-axis)
-        float yaw = 0f;   // Tilt side-to-side (Z-axis)
-        float roll = 0f;  // Spin (Y-axis)
+        float tilt = 0f;
 
-        // PITCH: W/S
-        if (Keyboard.current.wKey.isPressed) pitch = 1f;
-        else if (Keyboard.current.sKey.isPressed) pitch = -1f;
+        // In a 2.5D environment, we only tilt on the Z-axis (left/right)
+        if (Keyboard.current.aKey.isPressed) tilt = 1f;
+        else if (Keyboard.current.dKey.isPressed) tilt = -1f;
 
-        // YAW: A/D (Turning left/right)
-        if (Keyboard.current.aKey.isPressed) yaw = 1f;
-        else if (Keyboard.current.dKey.isPressed) yaw = -1f;
-
-        // ROLL: Q/E (Spinning like a screwdriver)
-        if (Keyboard.current.qKey.isPressed) roll = 1f;
-        else if (Keyboard.current.eKey.isPressed) roll = -1f;
-
-        // Apply forces to the local axes
-        rb.AddRelativeTorque(Vector3.right * pitch * rotationSpeed * Time.fixedDeltaTime);
-        rb.AddRelativeTorque(Vector3.forward * yaw * rotationSpeed * Time.fixedDeltaTime);
-        rb.AddRelativeTorque(Vector3.up * roll * rotationSpeed * Time.fixedDeltaTime);
+        // Apply torque to the Z-axis (Vector3.forward)
+        rb.AddRelativeTorque(Vector3.forward * tilt * rotationSpeed * Time.fixedDeltaTime);
     }
 }
